@@ -51,12 +51,12 @@ See [the GTA-SAN-ANDREAS-VR tutorial](https://github.com/MaslowCorporation/GTA-S
 
 ### Note for Developers
 
-* To get up and running with the C++ side of steam-uevr-wheel, follow [this tutorial](https://github.com/MaslowCorporation/GTA-SAN-ANDREAS-VR/blob/main/readme_assets/create_uevr_plugin/README.md)
+* To get up and running with the C++ side of steam-uevr-wheel, follow [this tutorial](./readme_assets/create_uevr_plugin/README.md)
 
 * To make edits to the steam-uevr-wheel python program, 
-the file containing the core wheel logic is [_wheel.py](./steam-uevr-wheel-dev/steam_vr_wheel_dist/steam_vr_wheel/_wheel.py) , 
+the file containing the core wheel logic is [_wheel.py](./steam-uevr-wheel-dev/steam_vr_wheel/_wheel.py) , 
 so edit this file to your heart's desire, if you know what you're doing ;-)
 
-* To generate a .exe file for the python side of steam-uevr-wheel, go to the folder `.\steam-uevr-wheel-dev\steam_vr_wheel_dist` and run `python config.py build`
+* To generate a .exe file for the python side of steam-uevr-wheel, go to the folder `.\steam-uevr-wheel-dev` and run `python config.py build`
 
 ### Thank you for existing ;-)
