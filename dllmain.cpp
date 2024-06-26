@@ -3,7 +3,6 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-
 // MAX_STEERING_ANGLE is the max steering angle used during the steering angle calculation.
 // 180.0f is a good starting point foe the wheel steering angle.
 // Play with this value, and find the sweet spot of reactiveness of the wheel.
@@ -20,7 +19,6 @@
 #define STEERING_CLOCKWISE 0
 #define STEERING_COUNTERCLOCKWISE 1
 #define NO_STEERING 2
-
 
 // the states of the VR wheel overlay
 #define WHEEL_INVISIBLE 0
@@ -50,35 +48,32 @@
 #include <memory>
 #include <vector>
 #include <thread>
-#include <shlobj.h>  // For SHGetKnownFolderPath
-#include <combaseapi.h>  // For CoTaskMemFre
+#include <shlobj.h>		// For SHGetKnownFolderPath
+#include <combaseapi.h> // For CoTaskMemFre
 #include <filesystem>
-
 
 using namespace uevr;
 using namespace std::chrono;
-
 
 struct Vector2f
 {
 	float x, y;
 };
 
-
-class VRSteeringWheel : public uevr::Plugin
+class VRHands : public uevr::Plugin
 {
 public:
-	VRSteeringWheel() : 
-		precise_steering_angle_degrees(0.0f),
-		wheel_grabbed(false), 
-		wheel_status(WHEEL_INVISIBLE), 
-		steam_vr_wheel_started(false), 
-		wheel_mode_button_timeout(false) {}
+	VRHands() : precise_steering_angle_degrees(0.0f),
+				wheel_grabbed(false),
+				wheel_status(WHEEL_INVISIBLE),
+				steam_vr_wheel_started(false),
+				wheel_mode_button_timeout(false) {}
 
 	// destructor function that runs when shizzle gets destroyed
-	virtual ~VRSteeringWheel() {
+	virtual ~VRHands()
+	{
 		// stop the socket server thread
-	    stop_socket_server();
+		stop_socket_server();
 
 		// Stop the .exe file
 		stop_exe(wheel_process);
@@ -97,17 +92,15 @@ public:
 		// this object is located at CONFIG_JSON_PATH
 		reset_steam_vr_wheel_settings();
 
-
 		// start the steam-uevr-wheel .exe file located in the Documents folder.
 		start_steam_uevr_wheel_exe();
-		
 	}
 
 	// start the steam-uevr-wheel .exe file located in the Documents folder.
 	void start_steam_uevr_wheel_exe()
 	{
 		// path of the steam-uevr-wheel executable
-		char* documents_folder_char = get_documents_folder();
+		char *documents_folder_char = get_documents_folder();
 		std::filesystem::path documents_folder(documents_folder_char);
 		std::filesystem::path steam_uevr_exe_path = "steam-uevr-wheel\\open-vr-wheel.exe";
 		std::filesystem::path full_steam_uevr_exe_path = documents_folder / steam_uevr_exe_path;
@@ -119,10 +112,11 @@ public:
 	}
 
 	// start an .exe file from it's file path
-	PROCESS_INFORMATION start_exe(const std::filesystem::path& exePath) {
+	PROCESS_INFORMATION start_exe(const std::filesystem::path &exePath)
+	{
 		LPWSTR path = pathToLPWSTR(exePath);
 
-		STARTUPINFO startupInfo = { sizeof(STARTUPINFO) };
+		STARTUPINFO startupInfo = {sizeof(STARTUPINFO)};
 		PROCESS_INFORMATION processInfo = {};
 		BOOL success = CreateProcess(
 			path, // lpApplicationName
@@ -130,7 +124,7 @@ public:
 			NULL, // lpProcessAttributes
 			NULL, // lpThreadAttributes
 			TRUE, // bInheritHandles
-			0, // dwCreationFlags
+			0,	  // dwCreationFlags
 			NULL, // lpEnvironment
 			NULL, // lpCurrentDirectory
 			&startupInfo,
@@ -140,7 +134,8 @@ public:
 	}
 
 	// stop an .exe file from it's PROCESS_INFORMATION object
-	void stop_exe(PROCESS_INFORMATION& processInfo) {
+	void stop_exe(PROCESS_INFORMATION &processInfo)
+	{
 		// Terminate the process
 		TerminateProcess(processInfo.hProcess, 0);
 
@@ -149,9 +144,9 @@ public:
 		CloseHandle(processInfo.hProcess);
 	}
 
-
 	// Function to convert std::filesystem::path to LPWSTR
-	LPWSTR pathToLPWSTR(const std::filesystem::path& path) {
+	LPWSTR pathToLPWSTR(const std::filesystem::path &path)
+	{
 		// Extract the wide string from std::filesystem::path
 		std::wstring wstr = path.wstring();
 
@@ -162,31 +157,34 @@ public:
 		return lpwstr;
 	}
 
-
 	// get the path of the Documents folder on Windows
-	char* get_documents_folder() {
+	char *get_documents_folder()
+	{
 		PWSTR path = nullptr;
 		HRESULT result = SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path);
 		char buffer[MAX_PATH];
 
-		if (SUCCEEDED(result)) {
+		if (SUCCEEDED(result))
+		{
 			// Convert from wide string to narrow string
-			
+
 			wcstombs(buffer, path, MAX_PATH);
 			log_debug_message("Documents Path: %s", buffer);
 		}
-		else {
+		else
+		{
 			log_debug_message("Error: Unable to get the Documents path.");
 		}
 
 		// Free memory allocated by SHGetKnownFolderPath
-		if (path) {
+		if (path)
+		{
 			CoTaskMemFree(path);
 		}
 
 		return buffer;
 	}
-	
+
 	// start the socket server that grabs the current steam-vr-wheel angle from the python (steam-vr-wheel) side of this plugin,
 	// thanks to ZeroMQ socket mechanism
 	void launch_socket_server(std::stop_token s)
@@ -194,16 +192,17 @@ public:
 		log_debug_message("Let's start the socket server");
 
 		// initialize the zmq context with a single IO thread
-		zmq::context_t context{ 1 };
+		zmq::context_t context{1};
 
 		// construct a PULL socket and bind to interface
-		zmq::socket_t socket{ context, zmq::socket_type::pull };
+		zmq::socket_t socket{context, zmq::socket_type::pull};
 
 		socket.bind("tcp://*:65435");
 
 		log_debug_message("socket server started !");
 
-		while (!s.stop_requested()) {
+		while (!s.stop_requested())
+		{
 			zmq::message_t request;
 
 			// receive a request from client
@@ -212,23 +211,21 @@ public:
 			precise_steering_angle_degrees = std::stof(request.to_string());
 
 			// log_debug_message("deg: %f", precise_steering_angle_degrees);
-
 		}
 
 		// stop the socket server thread
-		//stop_socket_server();
-
+		// stop_socket_server();
 	}
 
 	// Allows you to print debug messages that can be viewed externally through DbgView, in real time.
-	void log_debug_message(const char* format, ...)
+	void log_debug_message(const char *format, ...)
 	{
 		char buffer[256];
 		va_list args;
 		va_start(args, format);
 
 		// Construct the message with the log tag
-		_snprintf_s(buffer, sizeof(buffer), LOG_TAG);                                        // Add the tag to the buffer
+		_snprintf_s(buffer, sizeof(buffer), LOG_TAG);										 // Add the tag to the buffer
 		vsnprintf(buffer + strlen(LOG_TAG), sizeof(buffer) - strlen(LOG_TAG), format, args); // Append the message
 
 		va_end(args);
@@ -250,13 +247,12 @@ public:
 		// - set the wheel_show_hands property of the JSON object in CONFIG_JSON_PATH to false,
 		steam_vr_wheel_options["wheel_show_hands"] = false;
 
-
 		// save the steam-vr-wheel config edits
 		setJSONObject(CONFIG_JSON_PATH, steam_vr_wheel_options);
 	}
 
 	// callback that gets executed right before the current tick
-	void on_pre_engine_tick(API::UGameEngine* engine, float delta) override
+	void on_pre_engine_tick(API::UGameEngine *engine, float delta) override
 	{
 		UEVR_Vector3f left_position;
 		UEVR_Quaternionf left_rotation;
@@ -274,15 +270,12 @@ public:
 
 		// handle the wheel grab button (the left VR controller grip button)
 		handle_wheel_grab_button(
-			everything_is_ready
-		);
-
+			everything_is_ready);
 	}
-
 
 	// gives you a string representation of the current wheel status state
 	// (the wheel status is the state of the wheel, one of WHEEL_INVISIBLE = 0, WHEEL_SETUP = 1, and WHEEL_VISIBLE = 2)
-	const char* get_wheel_status_str()
+	const char *get_wheel_status_str()
 	{
 
 		if (wheel_status == WHEEL_INVISIBLE)
@@ -302,7 +295,6 @@ public:
 		{
 			return "Unknown wheel state";
 		}
-
 	}
 
 	// handle the wheel mode button press (the right VR controller grip button)
@@ -326,13 +318,12 @@ public:
 
 			handle_wheel_mode_button_press();
 
-			//log_debug_message("Wheel mode button was clicked ! Current wheel mode is: %s \n", get_wheel_status_str());
-			//log_debug_message("steam-vr-wheel center coordinates: x = %f , y = %f \n", wheel_center_position.x, wheel_center_position.y);
+			// log_debug_message("Wheel mode button was clicked ! Current wheel mode is: %s \n", get_wheel_status_str());
+			// log_debug_message("steam-vr-wheel center coordinates: x = %f , y = %f \n", wheel_center_position.x, wheel_center_position.y);
 		}
 
-
-
-		if (wheel_mode_button_timeout) {
+		if (wheel_mode_button_timeout)
+		{
 			// Get the current time
 			auto now = steady_clock::now();
 
@@ -345,7 +336,6 @@ public:
 				// indicate that there's no wheel button timeout
 				wheel_mode_button_timeout = false;
 
-
 				// log_debug_message("1 second has passed !");
 			}
 		}
@@ -353,8 +343,7 @@ public:
 
 	// handle the wheel grab button (the left VR controller grip button)
 	void handle_wheel_grab_button(
-		bool everything_is_ready
-	)
+		bool everything_is_ready)
 	{
 
 		// If the left controller grip button is pressed and the wheel is visible...
@@ -372,8 +361,6 @@ public:
 			wheel_grabbed = false;
 		}
 	}
-
-
 
 	// callback that handles the wheel mode button press
 	// (the wheel mode button allows you to position the VR steering wheel)
@@ -405,9 +392,9 @@ public:
 			// and set steam_vr_wheel_started to true
 			if (steam_vr_wheel_started == false)
 			{
-				//runBatchFile(STEAM_VR_WHEEL_PATH);
+				// runBatchFile(STEAM_VR_WHEEL_PATH);
 
-				//steam_vr_wheel_started = true;
+				// steam_vr_wheel_started = true;
 			}
 		}
 		else if (wheel_status == WHEEL_SETUP)
@@ -441,7 +428,6 @@ public:
 
 			// stop the socket server thread
 			stop_socket_server();
-
 		}
 		else
 		{
@@ -455,17 +441,17 @@ public:
 	// start the socket server on a separate thread
 	void start_socket_server()
 	{
-		socket_server_thread = std::make_unique<std::jthread>([this](std::stop_token s) {
-			launch_socket_server(s);
-		});
+		socket_server_thread = std::make_unique<std::jthread>([this](std::stop_token s)
+															  { launch_socket_server(s); });
 	}
 
 	// stop the socket server thread
 	void stop_socket_server()
 	{
-		if (socket_server_thread && socket_server_thread->joinable()) {
+		if (socket_server_thread && socket_server_thread->joinable())
+		{
 			socket_server_thread->request_stop(); // Request thread to stop
-			socket_server_thread->join(); // Ensure thread joins
+			socket_server_thread->join();		  // Ensure thread joins
 
 			log_debug_message("socket server/thread stopped !");
 		}
@@ -473,12 +459,12 @@ public:
 
 	// get the left and right VR controller position and rotation, and return true if success, or false otherwise
 	bool get_controllers_positions_and_rotations(
-		UEVR_Vector3f* left_position,
-		UEVR_Vector3f* right_position,
-		UEVR_Quaternionf* left_rotation,
-		UEVR_Quaternionf* right_rotation)
+		UEVR_Vector3f *left_position,
+		UEVR_Vector3f *right_position,
+		UEVR_Quaternionf *left_rotation,
+		UEVR_Quaternionf *right_rotation)
 	{
-		const UEVR_VRData* vr = API::get()->param()->vr;
+		const UEVR_VRData *vr = API::get()->param()->vr;
 		// const auto runtime_is_ready = vr->is_runtime_ready();
 		// const auto hmd_is_ready = vr->is_hmd_active();
 		const auto controllers_are_ready = vr->is_using_controllers();
@@ -494,10 +480,10 @@ public:
 	}
 
 	// callback that gets executed right after the current tick
-	void on_post_engine_tick(API::UGameEngine* engine, float delta) override {}
+	void on_post_engine_tick(API::UGameEngine *engine, float delta) override {}
 
 	// callback that allows you to programmatically press game buttonsn on every tick, thanks to the XINPUT API (state)
-	void on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE* state) override
+	void on_xinput_get_state(uint32_t *retval, uint32_t user_index, XINPUT_STATE *state) override
 	{
 		UEVR_Vector3f left_position;
 		UEVR_Quaternionf left_rotation;
@@ -521,12 +507,12 @@ public:
 
 	// Handles in-game steering, depending on the current VR steering wheel angle
 	void handle_steering(
-		XINPUT_STATE* state)
+		XINPUT_STATE *state)
 	{
 		/*
 		precise_steering_angle_degrees is the steering angle (in degrees) we get from steam-uevr-wheel.
 		The angle value is negative when steering is clockwise, and postive when counterclockwise.
-		We want the opposite, AKA positive clockwise and negative counterclockwise, because 
+		We want the opposite, AKA positive clockwise and negative counterclockwise, because
 		state->Gamepad.sThumbLX expects a positive clockwise and negative counterclockwise value .
 
 		Let's flip the angle value and let's store this value in total_steering_angle_degrees
@@ -540,8 +526,6 @@ public:
 		MAX_STEERING_ANGLE degrees is the default maximum steering angle of our imaginary wheel)
 		*/
 		float clamped_total_steering_angle = std::max(-MAX_STEERING_ANGLE, std::min(MAX_STEERING_ANGLE, total_steering_angle_degrees));
-
-
 
 		/*
 		Then normalize clamped_total_steering_angle, between [-1.0 and 1.0] .
@@ -564,8 +548,7 @@ public:
 		state->Gamepad.sThumbLX = total_joystick_push;
 
 		// print some shizzle, my nizzle ;-)
-		//log_debug_message("ang: %f", total_steering_angle_degrees);
-
+		// log_debug_message("ang: %f", total_steering_angle_degrees);
 	}
 
 	// Tells you if the left VR grip button is pressed
@@ -589,7 +572,7 @@ public:
 	}
 
 	// Allows you to get the contents of the JSON file located at path
-	nlohmann::json getJSONObject(const std::string& path)
+	nlohmann::json getJSONObject(const std::string &path)
 	{
 		nlohmann::json root;
 		std::ifstream file_in(path);
@@ -606,7 +589,7 @@ public:
 	}
 
 	// Allows you to edit the contents of the JSON file located at path, with value
-	void setJSONObject(const std::string& path, const nlohmann::json& value)
+	void setJSONObject(const std::string &path, const nlohmann::json &value)
 	{
 		std::ofstream file_out(path, std::ofstream::trunc);
 		if (file_out.is_open())
@@ -631,5 +614,4 @@ private:
 	PROCESS_INFORMATION wheel_process;
 };
 
-
-std::unique_ptr<VRSteeringWheel> g_plugin{ new VRSteeringWheel() };
+std::unique_ptr<VRHands> g_plugin{new VRHands()};
