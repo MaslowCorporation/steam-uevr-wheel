@@ -1,0 +1,17 @@
+{
+  "include_dirs": [
+    "bundled\\zeromq\\include",
+    "zmq\\utils"
+  ],
+  "runtime_library_dirs": [],
+  "libraries": [
+    "libzmq.cp35-win_amd64",
+    "ws2_32",
+    "iphlpapi",
+    "advapi32"
+  ],
+  "define_macros": [],
+  "library_dirs": [
+    "build\\temp.win-amd64-3.5\\Release\\buildutils"
+  ]
+}
