@@ -31,9 +31,9 @@ Download and install the latest `vJoySetup.exe` from [this sourceforge.net page]
 
 Okay ! Now, you need to download and add the `VRHands` UEVR plugin to your UEVR game folder.
 
-Download the `VRHands.dll` file from the [Releases page of steam-uevr-wheel](https://github.com/MaslowCorporation/steam-uevr-wheel/releases) ,
+Download the `VRHands.dll` and `libzmq-mt-gd-4_3_5.dll` files from the [Releases page of steam-uevr-wheel](https://github.com/MaslowCorporation/steam-uevr-wheel/releases) ,
 
-Open your `UEVRInjector.exe` as admin, and click on `Open Global Dir` . It will open a File Explorer to the location where the UEVR game folders are. Locate the `GameFolder` folder, and copy paste your `VRHands.dll` file inside the `GameFolder/plugins` folder.
+Open your `UEVRInjector.exe` as admin, and click on `Open Global Dir` . It will open a File Explorer to the location where the UEVR game folders are. Locate the `GameFolder` folder, and copy paste your `VRHands.dll` and `libzmq-mt-gd-4_3_5.dll` files inside the `GameFolder/plugins` folder.
 (NOTE: GameFolder is the name of the folder of your UEVR game)
 
 Mission accomplished ;-) You have installed everything needed to use VR motion controls for cars/trucks/boats !
